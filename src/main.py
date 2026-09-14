@@ -1,20 +1,24 @@
+import asyncio
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
-import ollama
-from pydantic import BaseModel
 
+app = FastAPI(title = "LLM Inference Orchestrator")
 
+# Mock LLM streamer function to simulate asynchronous token streaming
+async def mock_llm_streamer(prompt: str):
+   dummy_response = f"Processiong prompt: '{prompt}'..."
+   words = dummy_response.split() + [
+      "Streaming", "tokens", "asynchronously", "from", "your", "FastAPI", "inference", "orchestrator!"
+   ]
 
-app = FastAPI(title = "LLM Inference Orchestrator", description = "A simple FastAPI application to orchestrate LLM inference requests.", version = "1.0.0")
+   for word in words:
+      # Format as Server-Sent Event (SSE) message
+      yield f"data: {word}\n\n"
+      await asyncio.sleep(0.15)  # Simulates real-time LLM token output delay
 
-class PromptRequest(BaseModel):
-   prompt: str
-   
-async def generate_token(prompt: str):
-   response = ollama.generate(model = "llama3:8b", prompt = prompt, stream = True)
-   for chunk in response:
-      yield f"data: {chunk['response']}\n\n"
-
-@app.post("/generate")
-async def generate_endpoint(request: PromptRequest):
-   return StreamingResponse(generate_token(request.prompt), media_type="text/event-stream")
+@app.get("/api/v1/chat/stream")
+async def stream_llm_response(prompt: str):
+   return StreamingResponse(
+      mock_llm_streamer(prompt),
+      media_type="text/event-stream"
+   )

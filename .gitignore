@@ -24,3 +24,7 @@ logs.log
 # OS Generated Files
 .DS_Store
 Thumbs.db
+
+# Database
+*.db
+*.sqlite3

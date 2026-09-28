@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.services import mock_llm_streamer_with_logging
+from src.services import stream_llm_from_ollama
 from src.schemas import TaskResponse, PromptRequest
 from src.models import InferenceTask
 from src.database import get_db
@@ -11,7 +11,7 @@ from src.database import get_db
 
 router = APIRouter(prefix="/api/v1", tags=["Inference Orchestrator"])
 
-# Creates a persistent task record in DB and streams LLM output.
+# Creates a persistent task record in DB and streams LLM output from Ollama via SSe
 @router.post("/chat/stream")
 async def stream_llm_response(payload: PromptRequest, db: AsyncSession = Depends(get_db)):
    new_task = InferenceTask(prompt= payload.prompt, status= "PENDING")
@@ -20,7 +20,7 @@ async def stream_llm_response(payload: PromptRequest, db: AsyncSession = Depends
    await db.refresh(new_task)
    
    return StreamingResponse(
-       mock_llm_streamer_with_logging(new_task.id, payload.prompt, db),
+       stream_llm_from_ollama(new_task.id, payload.prompt, db, "llama3"),
        media_type="text/event-stream",
    )
 

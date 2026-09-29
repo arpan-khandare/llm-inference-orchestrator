@@ -1,12 +1,13 @@
 from datetime import datetime, timezone
 import json
+import os
 from typing import AsyncGenerator
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import InferenceTask
 
-OLLMA_URL = "http://localhost:11434/api/generate"
+OLLMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
       
 async def stream_llm_from_ollama(
     task_id: str, prompt: str, db: AsyncSession, model_name: str = "llama3"

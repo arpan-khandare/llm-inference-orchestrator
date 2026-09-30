@@ -20,8 +20,9 @@ async def stream_llm_response(payload: PromptRequest, db: AsyncSession = Depends
    await db.refresh(new_task)
    
    return StreamingResponse(
-       stream_llm_from_ollama(new_task.id, payload.prompt, db, "llama3"),
-       media_type="text/event-stream",
+         stream_llm_from_ollama(new_task.id, payload.prompt, db, "llama3"),
+         media_type="text/event-stream",
+         headers={"X-Task-ID": new_task.id}
    )
 
 # Check the execution status and duration of an inference task.
@@ -30,12 +31,12 @@ async def get_task_status(task_id: str, db: AsyncSession = Depends(get_db)):
    task = await db.get(InferenceTask, task_id) #look up InferenceTask object by primary key
    if not task:
       raise HTTPException(status_code=404, detail="Task not found")
-   return{
-      "task_id": task.id,
-      "prompt": task.prompt,
-      "status": task.status,
-      "created_at": task.created_at,
-      "completed_at": task.completed_at,
-      "duration_seconds": task.duration_second
-   }
+   return TaskResponse(
+         task_id=task.id,
+         prompt=task.prompt,
+         status=task.status,
+         created_at=task.created_at,
+         completed_at=task.completed_at,
+         duration_seconds=float(task.duration_second) if task.duration_second is not None else None,
+   )
    

@@ -10,10 +10,11 @@ class PromptRequest(BaseModel):
 
 class TaskResponse(BaseModel):
    task_id: str
+   prompt: str
    status: str
    created_at: datetime
    completed_at: Optional[datetime] = None
-   duration_seconds: Optional[datetime]= None
+   duration_seconds: Optional[float]= None
    
    model_config = ConfigDict(from_attributes=True)
    

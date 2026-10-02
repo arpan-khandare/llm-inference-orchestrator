@@ -1,6 +1,9 @@
 
-from fastapi import APIRouter, Depends, HTTPException
+import os
+
+from fastapi import APIRouter, Depends, HTTPException, Security, status
 from fastapi.responses import StreamingResponse
+from fastapi.security import APIKeyHeader
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.services import stream_llm_from_ollama
@@ -8,10 +11,26 @@ from src.schemas import TaskResponse, PromptRequest
 from src.models import InferenceTask
 from src.database import get_db
 
+API_KEY_NAME = "X-API-KEY"
+api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
-router = APIRouter(prefix="/api/v1", tags=["Inference Orchestrator"])
+# Set expected key or fallback for local dev
+EXPECTED_API_KEY= os.getenv("ORCHESTRATOR_API_KEY", "secret-orchestrator-key-1108")
 
-# Creates a persistent task record in DB and streams LLM output from Ollama via SSe
+async def verify_api_key(api_key: str = Security(api_key_header)):
+   if api_key != EXPECTED_API_KEY:
+      raise HTTPException(
+         status_code=status.HTTP_401_UNAUTHORIZED,
+         detail="Invalid/missing api key"
+      )
+
+router = APIRouter(
+      prefix="/api/v1", 
+      tags=["Inference Orchestrator"],
+      dependencies=[Depends(verify_api_key)]
+      )
+
+# Creates a persistent task record in DB and streams LLM output from Ollama via SSE
 @router.post("/chat/stream")
 async def stream_llm_response(payload: PromptRequest, db: AsyncSession = Depends(get_db)):
    new_task = InferenceTask(prompt= payload.prompt, status= "PENDING")

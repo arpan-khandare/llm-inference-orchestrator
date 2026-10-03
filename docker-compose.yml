@@ -7,6 +7,7 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - ORCHESTRATOR_API_KEY=${ORCHESTRATOR_API_KEY}
       - OLLAMA_URL=http://host.docker.internal:11434/api/generate
     extra_hosts:
       - "host.docker.internal:host-gateway"

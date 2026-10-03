@@ -21,6 +21,9 @@ logs.log
 .idea/
 *.swp
 
+# Environment Files
+.env
+
 # OS Generated Files
 .DS_Store
 Thumbs.db

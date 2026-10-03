@@ -14,8 +14,8 @@ from src.database import get_db
 API_KEY_NAME = "X-API-KEY"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
-# Set expected key or fallback for local dev
-EXPECTED_API_KEY= os.getenv("ORCHESTRATOR_API_KEY", "secret-orchestrator-key-1108")
+# Set expected key
+EXPECTED_API_KEY= os.getenv("ORCHESTRATOR_API_KEY")
 
 async def verify_api_key(api_key: str = Security(api_key_header)):
    if api_key != EXPECTED_API_KEY:
